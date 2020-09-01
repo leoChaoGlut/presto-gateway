@@ -23,6 +23,12 @@ public class AdminController {
         return coordinatorService.addCoordinator(host, port);
     }
 
+    @GetMapping("removeCoordinator")
+    public List<CoordinatorPO> removeCoordinator(String host, int port) {
+        coordinatorService.removeCoordinator(host, port);
+        return coordinatorService.getCoordinators();
+    }
+
     @GetMapping("reloadCoordinators")
     public List<CoordinatorPO> reloadCoordinators() {
         coordinatorService.reloadCoordinators();

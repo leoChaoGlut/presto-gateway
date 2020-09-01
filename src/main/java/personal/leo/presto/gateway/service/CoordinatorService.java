@@ -32,6 +32,10 @@ public class CoordinatorService {
 
     final AtomicInteger index = new AtomicInteger(0);
 
+
+    @Autowired
+    QueryService queryService;
+
     @Autowired
     CoordinatorMapper coordinatorMapper;
 
@@ -56,9 +60,10 @@ public class CoordinatorService {
     public List<CoordinatorPO> addCoordinator(String host, int port) {
         final boolean isActive = isActive(host, port);
         if (isActive) {
-            final int count = coordinatorMapper.insert(host, port);
+            final CoordinatorPO coordinator = CoordinatorPO.builder().host(host).port(port).build();
+            final int count = coordinatorMapper.insert(coordinator);
             if (count > 0) {
-                coordinators.add(CoordinatorPO.builder().host(host).port(port).build());
+                coordinators.add(coordinator);
             }
             return coordinators;
         } else {
@@ -92,6 +97,12 @@ public class CoordinatorService {
         return false;
     }
 
+    public String fetchCoordinatorUrl(String requestUri) {
+        final String[] split = StringUtils.splitByWholeSeparator(requestUri, "/");
+        final String queryId = split[3];
+        return queryService.fetchCoordinatorUrl(queryId);
+    }
+
     public String fetchCoordinatorUrl() {
         if (coordinators.isEmpty()) {
             reloadCoordinators();
@@ -112,5 +123,10 @@ public class CoordinatorService {
 
         return "http://" + coordinator.getHost() + ":" + coordinator.getPort();
     }
+
+    public boolean removeCoordinator(String host, int port) {
+        return coordinators.remove(CoordinatorPO.builder().host(host).port(port).build());
+    }
+
 
 }

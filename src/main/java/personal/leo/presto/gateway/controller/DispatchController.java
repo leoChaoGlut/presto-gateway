@@ -1,5 +1,6 @@
 package personal.leo.presto.gateway.controller;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -17,10 +18,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import personal.leo.presto.gateway.service.CoordinatorService;
+import personal.leo.presto.gateway.service.QueryService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 
@@ -29,12 +32,16 @@ import java.util.Enumeration;
 public class DispatchController {
     @Autowired
     CoordinatorService coordinatorService;
+    @Autowired
+    QueryService queryService;
+
 
     @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp")
     @PostMapping("/*/**")
     public void doPost(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
-        try (CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
+        try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
             final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl();
+            log.info("doPost: " + coordinatorUrl + cliReq.getRequestURI());
             HttpPost proxyPost = new HttpPost(coordinatorUrl + cliReq.getRequestURI());
 
             final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
@@ -49,9 +56,18 @@ public class DispatchController {
 
             proxyPost.setEntity(new InputStreamEntity(cliReq.getInputStream(), ContentType.create("text/plain", StandardCharsets.UTF_8)));
 
-            try (CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyPost)) {
+            try (
+                    final CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyPost);
+                    final InputStream inputStream = proxyResp.getEntity().getContent()
+            ) {
                 cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
-                proxyResp.getEntity().writeTo(cliResp.getOutputStream());
+
+                final String respBody = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+                final String queryId = JSON.parseObject(respBody).getString("id");
+                queryService.saveQueryId(queryId, coordinatorUrl);
+
+                IOUtils.write(respBody, cliResp.getOutputStream(), StandardCharsets.UTF_8);
             }
         }
     }
@@ -59,9 +75,11 @@ public class DispatchController {
     @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp")
     @GetMapping("/*/**")
     public void doGet(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
-        try (CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
-            final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl();
-            HttpGet proxyGet = new HttpGet(coordinatorUrl + cliReq.getRequestURI());
+        try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
+            final String requestURI = cliReq.getRequestURI();
+            final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl(requestURI);
+            log.info("doGet: " + coordinatorUrl + requestURI);
+            HttpGet proxyGet = new HttpGet(coordinatorUrl + requestURI);
 
             final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
             while (cliHeaderNames.hasMoreElements()) {
@@ -70,7 +88,7 @@ public class DispatchController {
                 proxyGet.setHeader(cliHeaderName, cliHeaderValue);
             }
 
-            try (CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyGet)) {
+            try (final CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyGet);) {
                 cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
                 proxyResp.getEntity().writeTo(cliResp.getOutputStream());
             }
