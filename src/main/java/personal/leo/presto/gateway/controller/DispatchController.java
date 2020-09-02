@@ -12,6 +12,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Controller;
@@ -36,7 +37,7 @@ public class DispatchController {
     QueryService queryService;
 
 
-    @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp")
+    @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp", backoff = @Backoff(2000L))
     @PostMapping("/*/**")
     public void doPost(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
@@ -72,13 +73,13 @@ public class DispatchController {
         }
     }
 
-    @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp")
+    @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp", backoff = @Backoff(2000L))
     @GetMapping("/*/**")
     public void doGet(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
             final String requestURI = cliReq.getRequestURI();
             final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl(requestURI);
-            log.info("doGet: " + coordinatorUrl + requestURI);
+//            log.info("doGet: " + coordinatorUrl + requestURI);
             HttpGet proxyGet = new HttpGet(coordinatorUrl + requestURI);
 
             final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
