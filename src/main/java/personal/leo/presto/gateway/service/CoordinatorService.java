@@ -49,15 +49,14 @@ public class CoordinatorService {
 
 
     public void reloadCoordinators() {
-        synchronized (coordinators) {
-            final List<CoordinatorPO> coordinators = coordinatorMapper.selectAll();
-            this.coordinators.clear();
-            if (CollectionUtils.isNotEmpty(coordinators)) {
-                final List<CoordinatorPO> activeCoordinators = coordinators.stream()
-                        .filter(this::isActive)
-                        .collect(Collectors.toList());
-                this.coordinators.addAll(activeCoordinators);
-            }
+        final List<CoordinatorPO> activeCoordinators = coordinatorMapper.selectAll()
+                .stream()
+                .filter(this::isActive)
+                .collect(Collectors.toList());
+
+        this.coordinators.clear();
+        if (CollectionUtils.isNotEmpty(activeCoordinators)) {
+            this.coordinators.addAll(activeCoordinators);
         }
     }
 
