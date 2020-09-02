@@ -3,6 +3,7 @@ package personal.leo.presto.gateway.controller;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -73,12 +74,14 @@ public class DispatchController {
         }
     }
 
-    @Retryable(maxAttempts = 5, backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
+    @Retryable(recover = "writeExceptionToCliResp")
     @GetMapping("/*/**")
     public void doGet(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
             final String requestURI = cliReq.getRequestURI();
-            final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl(requestURI);
+            final String[] split = StringUtils.splitByWholeSeparator(requestURI, "/");
+            final String queryId = split[3];
+            final String coordinatorUrl = queryService.fetchCoordinatorUrl(queryId);
 //            log.info("doGet: " + coordinatorUrl + requestURI);
             HttpGet proxyGet = new HttpGet(coordinatorUrl + requestURI);
 

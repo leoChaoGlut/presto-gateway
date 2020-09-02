@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * TODO coordinator列表变更时,需要通知其它gateway实例
+ * 本类不做coordinator状态管理,由{@link personal.leo.presto.gateway.schedule.CoordinatorHealthManager} 管理
  */
 @Slf4j
 @Service
@@ -38,7 +38,6 @@ public class CoordinatorService {
 
     @Autowired
     QueryService queryService;
-
     @Autowired
     CoordinatorMapper coordinatorMapper;
 
@@ -49,11 +48,7 @@ public class CoordinatorService {
 
 
     public void reloadCoordinators() {
-        final List<CoordinatorPO> activeCoordinators = coordinatorMapper.selectAll()
-                .stream()
-                .filter(this::isActive)
-                .collect(Collectors.toList());
-
+        final List<CoordinatorPO> activeCoordinators = coordinatorMapper.selectActiveCoordinators();
         this.coordinators.clear();
         if (CollectionUtils.isNotEmpty(activeCoordinators)) {
             this.coordinators.addAll(activeCoordinators);
@@ -63,7 +58,7 @@ public class CoordinatorService {
     public List<CoordinatorPO> addCoordinator(String host, int port) {
         final boolean isActive = isActive(host, port);
         if (isActive) {
-            final CoordinatorPO coordinator = CoordinatorPO.builder().host(host).port(port).build();
+            final CoordinatorPO coordinator = CoordinatorPO.builder().host(host).port(port).active(isActive).build();
             final int count = coordinatorMapper.insert(coordinator);
             if (count > 0) {
                 coordinators.add(coordinator);
@@ -100,18 +95,10 @@ public class CoordinatorService {
         return false;
     }
 
-    public String fetchCoordinatorUrl(String requestUri) {
-        final String[] split = StringUtils.splitByWholeSeparator(requestUri, "/");
-        final String queryId = split[3];
-        return queryService.fetchCoordinatorUrl(queryId);
-    }
 
     public String fetchCoordinatorUrl() {
         if (coordinators.isEmpty()) {
-            reloadCoordinators();
-            if (coordinators.isEmpty()) {
-                throw new RuntimeException("No active coordinator");
-            }
+            throw new RuntimeException("No active coordinator");
         }
 
         final int index = this.index.get();
@@ -132,6 +119,11 @@ public class CoordinatorService {
         removeCoordinator(coordinator);
     }
 
+    /**
+     * 这里会把数据库里的coordinator信息也给删掉,谨慎使用
+     *
+     * @param coordinator
+     */
     public void removeCoordinator(CoordinatorPO coordinator) {
         int count = coordinatorMapper.remove(coordinator);
         if (count > 0) {

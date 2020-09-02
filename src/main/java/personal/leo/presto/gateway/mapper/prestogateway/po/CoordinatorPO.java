@@ -10,4 +10,5 @@ import lombok.*;
 public class CoordinatorPO {
     private String host;
     private int port;
+    private boolean active;
 }

@@ -16,9 +16,9 @@ public interface QueryMapper {
     int insert(QueryPO query);
 
 
-    @Select("select query_id,coordinator_url from query")
+    @Select("select * from query")
     List<CoordinatorPO> selectAll();
 
     @Select("select coordinator_url from query where query_id = #{query_id}")
-    String select(@Param("query_id") String query_id);
+    String selectCoordinatorUrl(@Param("query_id") String query_id);
 }

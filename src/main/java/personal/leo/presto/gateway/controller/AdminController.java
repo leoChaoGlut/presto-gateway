@@ -1,8 +1,6 @@
 package personal.leo.presto.gateway.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,28 +27,10 @@ public class AdminController {
         return coordinatorService.getCoordinators();
     }
 
-    @GetMapping("reloadCoordinators")
-    public List<CoordinatorPO> reloadCoordinators() {
-        coordinatorService.reloadCoordinators();
-        return coordinatorService.getCoordinators();
-    }
-
     @GetMapping("getCoordinators")
     public List<CoordinatorPO> getCoordinators() {
         return coordinatorService.getCoordinators();
     }
 
-    @Retryable(recover = "recover")
-    @GetMapping("retryTest")
-    public void retryTest() {
-        System.out.println("==========");
-        throw new RuntimeException("11");
-    }
-
-    @Recover
-    public void recover(Exception e) {
-        System.out.println("2222222222222");
-        System.out.println(e.getMessage());
-    }
 
 }

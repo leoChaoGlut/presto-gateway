@@ -29,7 +29,7 @@ public class QueryService {
 
     @Cacheable
     public String fetchCoordinatorUrl(String queryId) {
-        final String coordinatorUrl = queryMapper.select(queryId);
+        final String coordinatorUrl = queryMapper.selectCoordinatorUrl(queryId);
         log.info("fetchCoordinatorUrl: " + queryId + "->" + coordinatorUrl);
         return coordinatorUrl;
     }
