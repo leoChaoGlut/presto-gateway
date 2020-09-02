@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 public class ConcurrencyTest {
 
     @Test
-    public void test() throws SQLException, ExecutionException, InterruptedException {
+    public void test() throws ExecutionException, InterruptedException {
         final int poolSize = 5;
         final ExecutorService pool = Executors.newFixedThreadPool(poolSize);
         List<CompletableFuture<String>> futures = new ArrayList<>();

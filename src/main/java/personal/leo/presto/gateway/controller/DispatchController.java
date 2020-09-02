@@ -38,7 +38,7 @@ public class DispatchController {
     QueryService queryService;
 
 
-    @Retryable(maxAttempts = 5, backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
+    @Retryable(backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
     @PostMapping("/*/**")
     public void doPost(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
@@ -101,6 +101,7 @@ public class DispatchController {
 
     @Recover
     public void writeExceptionToCliResp(Exception e, HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
+        log.error("writeExceptionToCliResp: " + e.getMessage());
         IOUtils.write(e.getMessage(), cliResp.getOutputStream(), StandardCharsets.UTF_8);
     }
 }

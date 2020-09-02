@@ -6,7 +6,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode
+@EqualsAndHashCode(of = {"host", "port"})
 public class CoordinatorPO {
     private String host;
     private int port;

@@ -1,11 +1,12 @@
 package personal.leo.presto.gateway.service;
 
+import com.alibaba.fastjson.JSON;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -16,7 +17,6 @@ import personal.leo.presto.gateway.mapper.prestogateway.CoordinatorMapper;
 import personal.leo.presto.gateway.mapper.prestogateway.po.CoordinatorPO;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
@@ -76,20 +76,31 @@ public class CoordinatorService {
     public boolean isActive(String host, int port) {
         try {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-                HttpGet get = new HttpGet("http://" + host + ":" + port + "/v1/info/state");
+                HttpGet get = new HttpGet("http://" + host + ":" + port + "/v1/info");
+                get.setConfig(
+                        RequestConfig.custom()
+                                .setSocketTimeout(1000)
+                                .build()
+                );
 
                 try (CloseableHttpResponse resp = httpClient.execute(get)) {
                     if (Objects.equals(resp.getStatusLine().getStatusCode(), HttpStatus.SC_OK)) {
                         final String respBody = IOUtils.toString(resp.getEntity().getContent(), StandardCharsets.UTF_8);
-                        if (StringUtils.containsIgnoreCase(respBody, "ACTIVE")) {
+                        /*
+                            TODO 因presto新版本把statu放到了/ui/api/status里,访问status需要权限. 暂时不能直接访问,需要尝试增加用户信息才能获取到
+                            这里使用 /v1/info,可以获取到coordinator启动成功的状态,但是gateway的请求在此时请求进来,请求会在等待资源的状态,等到该coordinator
+                            所有的worker启动起来,才能继续执行任务
+                         */
+                        if (Objects.equals(JSON.parseObject(respBody).getBoolean("starting"), false)) {
+//                            log.info(host + ":" + port + " isActive");
                             return true;
                         }
                     }
 
                 }
             }
-        } catch (IOException e) {
-            log.error("isActive error", e);
+        } catch (Exception e) {
+            log.info("isActive error: " + host + "_" + port, e.getMessage());
         }
 
         return false;
