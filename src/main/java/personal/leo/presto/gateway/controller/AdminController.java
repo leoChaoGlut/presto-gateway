@@ -35,6 +35,11 @@ public class AdminController {
         return coordinatorService.getCoordinators();
     }
 
+    @GetMapping("getCoordinators")
+    public List<CoordinatorPO> getCoordinators() {
+        return coordinatorService.getCoordinators();
+    }
+
     @Retryable(recover = "recover")
     @GetMapping("retryTest")
     public void retryTest() {

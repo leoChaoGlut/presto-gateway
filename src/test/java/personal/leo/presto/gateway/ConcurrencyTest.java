@@ -14,8 +14,7 @@ public class ConcurrencyTest {
 
     @Test
     public void test() throws SQLException, ExecutionException, InterruptedException {
-
-        final int poolSize = 10;
+        final int poolSize = 5;
         final ExecutorService pool = Executors.newFixedThreadPool(poolSize);
         List<CompletableFuture<String>> futures = new ArrayList<>();
         for (int i = 0; i < poolSize; i++) {

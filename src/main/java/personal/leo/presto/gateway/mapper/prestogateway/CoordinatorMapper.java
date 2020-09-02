@@ -1,5 +1,6 @@
 package personal.leo.presto.gateway.mapper.prestogateway;
 
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -16,4 +17,7 @@ public interface CoordinatorMapper {
 
     @Select("select host,port from coordinator")
     List<CoordinatorPO> selectAll();
+
+    @Delete("delete from coordinator where host=#{host} and port=#{port}")
+    int remove(CoordinatorPO coordinator);
 }

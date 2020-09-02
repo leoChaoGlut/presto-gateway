@@ -37,7 +37,7 @@ public class DispatchController {
     QueryService queryService;
 
 
-    @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp", backoff = @Backoff(2000L))
+    @Retryable(maxAttempts = 5, backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
     @PostMapping("/*/**")
     public void doPost(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
@@ -73,7 +73,7 @@ public class DispatchController {
         }
     }
 
-    @Retryable(maxAttempts = 10, recover = "writeExceptionToCliResp", backoff = @Backoff(2000L))
+    @Retryable(maxAttempts = 5, backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
     @GetMapping("/*/**")
     public void doGet(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {

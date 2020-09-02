@@ -24,6 +24,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+/**
+ * TODO coordinator列表变更时,需要通知其它gateway实例
+ */
 @Slf4j
 @Service
 public class CoordinatorService {
@@ -43,6 +46,7 @@ public class CoordinatorService {
     public void postConstruct() {
         reloadCoordinators();
     }
+
 
     public void reloadCoordinators() {
         synchronized (coordinators) {
@@ -124,8 +128,18 @@ public class CoordinatorService {
         return "http://" + coordinator.getHost() + ":" + coordinator.getPort();
     }
 
-    public boolean removeCoordinator(String host, int port) {
-        return coordinators.remove(CoordinatorPO.builder().host(host).port(port).build());
+    public void removeCoordinator(String host, int port) {
+        final CoordinatorPO coordinator = CoordinatorPO.builder().host(host).port(port).build();
+        removeCoordinator(coordinator);
+    }
+
+    public void removeCoordinator(CoordinatorPO coordinator) {
+        int count = coordinatorMapper.remove(coordinator);
+        if (count > 0) {
+            coordinators.remove(coordinator);
+        } else {
+            throw new RuntimeException("removeCoordinator failed: " + coordinator);
+        }
     }
 
 
