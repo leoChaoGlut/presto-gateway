@@ -21,7 +21,7 @@ public class QueryService {
 
     @CachePut(key = "#queryId")
     public String saveQueryId(String queryId, String coordinatorUrl) {
-        log.info("saveQueryId: " + queryId + "->" + coordinatorUrl);
+//        log.info("saveQueryId: " + queryId + "->" + coordinatorUrl);
         final QueryPO query = QueryPO.builder().query_id(queryId).coordinator_url(coordinatorUrl).build();
         queryMapper.insert(query);
         return coordinatorUrl;
@@ -30,7 +30,7 @@ public class QueryService {
     @Cacheable
     public String fetchCoordinatorUrl(String queryId) {
         final String coordinatorUrl = queryMapper.selectCoordinatorUrl(queryId);
-        log.info("fetchCoordinatorUrl: " + queryId + "->" + coordinatorUrl);
+//        log.info("fetchCoordinatorUrl: " + queryId + "->" + coordinatorUrl);
         return coordinatorUrl;
     }
 }
