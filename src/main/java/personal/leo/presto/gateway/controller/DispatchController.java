@@ -43,7 +43,7 @@ public class DispatchController {
     public void doPost(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
             final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl();
-            log.info("doPost: " + coordinatorUrl + cliReq.getRequestURI());
+//            log.info("doPost: " + coordinatorUrl + cliReq.getRequestURI());
             final HttpPost proxyPost = new HttpPost(coordinatorUrl + cliReq.getRequestURI());
 
             final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
@@ -77,24 +77,27 @@ public class DispatchController {
     @Retryable(recover = "writeExceptionToCliResp")
     @GetMapping("/*/**")
     public void doGet(HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
-        try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
-            final String requestURI = cliReq.getRequestURI();
-            final String[] split = StringUtils.splitByWholeSeparator(requestURI, "/");
+        final String requestURI = cliReq.getRequestURI();
+        final String[] split = StringUtils.splitByWholeSeparator(requestURI, "/");
+        if (split != null && split.length > 3) {
             final String queryId = split[3];
-            final String coordinatorUrl = queryService.fetchCoordinatorUrl(queryId);
+
+            try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
+                final String coordinatorUrl = queryService.fetchCoordinatorUrl(queryId);
 //            log.info("doGet: " + coordinatorUrl + requestURI);
-            HttpGet proxyGet = new HttpGet(coordinatorUrl + requestURI);
+                HttpGet proxyGet = new HttpGet(coordinatorUrl + requestURI);
 
-            final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
-            while (cliHeaderNames.hasMoreElements()) {
-                final String cliHeaderName = cliHeaderNames.nextElement();
-                final String cliHeaderValue = cliReq.getHeader(cliHeaderName);
-                proxyGet.setHeader(cliHeaderName, cliHeaderValue);
-            }
+                final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
+                while (cliHeaderNames.hasMoreElements()) {
+                    final String cliHeaderName = cliHeaderNames.nextElement();
+                    final String cliHeaderValue = cliReq.getHeader(cliHeaderName);
+                    proxyGet.setHeader(cliHeaderName, cliHeaderValue);
+                }
 
-            try (final CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyGet);) {
-                cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
-                proxyResp.getEntity().writeTo(cliResp.getOutputStream());
+                try (final CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyGet);) {
+                    cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
+                    proxyResp.getEntity().writeTo(cliResp.getOutputStream());
+                }
             }
         }
     }
