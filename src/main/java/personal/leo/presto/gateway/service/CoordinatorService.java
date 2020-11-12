@@ -104,7 +104,7 @@ public class CoordinatorService {
                 }
             }
         } catch (Exception e) {
-            log.info("isActive error: " + host + "_" + port, e.getMessage());
+            log.error("isActive error: " + host + ":" + port, e);
         }
 
         return false;
