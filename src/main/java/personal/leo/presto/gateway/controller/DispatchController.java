@@ -44,7 +44,7 @@ public class DispatchController {
         try (final CloseableHttpClient proxyHttpClient = HttpClients.createDefault()) {
             final String coordinatorUrl = coordinatorService.fetchCoordinatorUrl();
             log.info("doPost: " + coordinatorUrl + cliReq.getRequestURI());
-            HttpPost proxyPost = new HttpPost(coordinatorUrl + cliReq.getRequestURI());
+            final HttpPost proxyPost = new HttpPost(coordinatorUrl + cliReq.getRequestURI());
 
             final Enumeration<String> cliHeaderNames = cliReq.getHeaderNames();
             while (cliHeaderNames.hasMoreElements()) {

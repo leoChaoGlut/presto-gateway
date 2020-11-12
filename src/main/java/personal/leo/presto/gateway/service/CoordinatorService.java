@@ -7,17 +7,22 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import personal.leo.presto.gateway.mapper.prestogateway.CoordinatorMapper;
 import personal.leo.presto.gateway.mapper.prestogateway.po.CoordinatorPO;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,7 +39,6 @@ public class CoordinatorService {
     final List<CoordinatorPO> coordinators = new CopyOnWriteArrayList<>();
 
     final AtomicInteger index = new AtomicInteger(0);
-
 
     @Autowired
     QueryService queryService;
@@ -76,22 +80,22 @@ public class CoordinatorService {
     public boolean isActive(String host, int port) {
         try {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-                HttpGet get = new HttpGet("http://" + host + ":" + port + "/v1/info");
+
+                loginPrestoUi(httpClient, host, port);
+
+                final HttpGet get = new HttpGet("http://" + host + ":" + port + "/ui/api/stats");
                 get.setConfig(
                         RequestConfig.custom()
                                 .setSocketTimeout(1000)
                                 .build()
                 );
 
-                try (CloseableHttpResponse resp = httpClient.execute(get)) {
+                try (final CloseableHttpResponse resp = httpClient.execute(get)) {
                     if (Objects.equals(resp.getStatusLine().getStatusCode(), HttpStatus.SC_OK)) {
                         final String respBody = IOUtils.toString(resp.getEntity().getContent(), StandardCharsets.UTF_8);
-                        /*
-                            TODO 因presto新版本把statu放到了/ui/api/status里,访问status需要权限. 暂时不能直接访问,需要尝试增加用户信息才能获取到
-                            这里使用 /v1/info,可以获取到coordinator启动成功的状态,但是gateway的请求在此时请求进来,请求会在等待资源的状态,等到该coordinator
-                            所有的worker启动起来,才能继续执行任务
-                         */
-                        if (Objects.equals(JSON.parseObject(respBody).getBoolean("starting"), false)) {
+
+                        final Integer activeWorkers = JSON.parseObject(respBody).getInteger("activeWorkers");
+                        if (activeWorkers > 0) {
 //                            log.info(host + ":" + port + " isActive");
                             return true;
                         }
@@ -104,6 +108,17 @@ public class CoordinatorService {
         }
 
         return false;
+    }
+
+    private void loginPrestoUi(CloseableHttpClient httpClient, String host, int port) throws IOException {
+        final HttpPost post = new HttpPost("http://" + host + ":" + port + "/ui/login");
+        post.setEntity(new UrlEncodedFormEntity(Collections.singletonList(
+                //TODO 默认未开启ui权限,用guest登陆
+                new BasicNameValuePair("username", "guest")
+        )));
+        try (final CloseableHttpResponse resp = httpClient.execute(post);) {
+
+        }
     }
 
 
