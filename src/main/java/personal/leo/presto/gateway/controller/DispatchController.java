@@ -101,7 +101,7 @@ public class DispatchController {
 
     @Recover
     public void writeExceptionToCliResp(Exception e, HttpServletRequest cliReq, HttpServletResponse cliResp) throws IOException {
-        log.error("writeExceptionToCliResp: " + e.getMessage());
+        log.error("writeExceptionToCliResp: " + e.getMessage(), e);
         IOUtils.write(e.getMessage(), cliResp.getOutputStream(), StandardCharsets.UTF_8);
     }
 }
