@@ -10,3 +10,5 @@ spring:
 #logging:
 #  level:
 #    personal.leo.presto.gateway.mapper.prestogateway: DEBUG
+server:
+  port: 9200
