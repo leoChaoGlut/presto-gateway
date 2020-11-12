@@ -86,7 +86,7 @@ public class CoordinatorService {
                 final HttpGet get = new HttpGet("http://" + host + ":" + port + "/ui/api/stats");
                 get.setConfig(
                         RequestConfig.custom()
-                                .setSocketTimeout(1000)
+                                .setSocketTimeout(3000)
                                 .build()
                 );
 
