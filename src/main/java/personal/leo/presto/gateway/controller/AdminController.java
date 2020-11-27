@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import personal.leo.presto.gateway.mapper.prestogateway.po.CoordinatorPO;
 import personal.leo.presto.gateway.service.CoordinatorService;
+import personal.leo.presto.gateway.service.cache.CacheService;
 
 import java.util.List;
 
@@ -15,6 +16,9 @@ public class AdminController {
 
     @Autowired
     CoordinatorService coordinatorService;
+
+    @Autowired
+    CacheService cacheService;
 
     @GetMapping("addCoordinator")
     public List<CoordinatorPO> addCoordinator(String host, int port) {
