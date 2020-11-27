@@ -12,3 +12,8 @@ spring:
 #    personal.leo.presto.gateway.mapper.prestogateway: DEBUG
 server:
   port: 9200
+
+redis:
+  host: host
+  port: 6379
+  password: password

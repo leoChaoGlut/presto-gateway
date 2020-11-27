@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import personal.leo.presto.gateway.mapper.prestogateway.QueryMapper;
 import personal.leo.presto.gateway.mapper.prestogateway.po.QueryPO;
+import personal.leo.presto.gateway.service.cache.RedisService;
 
 @Slf4j
 @Service

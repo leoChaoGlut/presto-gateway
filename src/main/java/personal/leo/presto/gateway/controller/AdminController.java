@@ -36,5 +36,15 @@ public class AdminController {
         return coordinatorService.getCoordinators();
     }
 
+    @GetMapping("cache/disable")
+    public boolean disableCache() {
+        cacheService.disableCache();
+        return cacheService.isCacheEnabled();
+    }
 
+    @GetMapping("cache/enable")
+    public boolean enableCache() {
+        cacheService.enableCache();
+        return cacheService.isCacheEnabled();
+    }
 }
