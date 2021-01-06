@@ -128,14 +128,12 @@ public class CoordinatorService {
         }
 
         final int index = this.index.get();
-        final CoordinatorPO coordinator;
-        if (index >= coordinators.size()) {
-            coordinator = coordinators.get(0);
+        final int size = coordinators.size();
+        if (index >= size) {
             this.index.compareAndSet(index, 0);
-        } else {
-            coordinator = coordinators.get(index);
-            this.index.incrementAndGet();
         }
+        final CoordinatorPO coordinator = coordinators.get(index % size);
+        this.index.incrementAndGet();
 
         return "http://" + coordinator.getHost() + ":" + coordinator.getPort();
     }
