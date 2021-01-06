@@ -60,7 +60,7 @@ public class CoordinatorService {
     }
 
     public List<CoordinatorPO> addCoordinator(String host, int port) {
-        final boolean isActive = isActive(host, port);
+        final boolean isActive = checkIsActive(host, port);
         if (isActive) {
             final CoordinatorPO coordinator = CoordinatorPO.builder().host(host).port(port).active(isActive).build();
             final int count = coordinatorMapper.insert(coordinator);
@@ -73,11 +73,11 @@ public class CoordinatorService {
         }
     }
 
-    public boolean isActive(CoordinatorPO coordinator) {
-        return isActive(coordinator.getHost(), coordinator.getPort());
+    public boolean checkIsActive(CoordinatorPO coordinator) {
+        return checkIsActive(coordinator.getHost(), coordinator.getPort());
     }
 
-    public boolean isActive(String host, int port) {
+    public boolean checkIsActive(String host, int port) {
         try {
             try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
@@ -128,14 +128,14 @@ public class CoordinatorService {
         }
 
         final int index = this.index.get();
-        final CoordinatorPO coordinator;
-        if (index >= coordinators.size()) {
-            coordinator = coordinators.get(0);
+        final int size = coordinators.size();
+
+        if (index >= size) {
             this.index.compareAndSet(index, 0);
-        } else {
-            coordinator = coordinators.get(index);
-            this.index.incrementAndGet();
         }
+
+        final CoordinatorPO coordinator = coordinators.get(index);
+        this.index.incrementAndGet();
 
         return "http://" + coordinator.getHost() + ":" + coordinator.getPort();
     }
