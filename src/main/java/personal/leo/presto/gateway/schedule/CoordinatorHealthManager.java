@@ -9,6 +9,7 @@ import personal.leo.presto.gateway.mapper.prestogateway.po.CoordinatorPO;
 import personal.leo.presto.gateway.service.CoordinatorService;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -24,12 +25,18 @@ public class CoordinatorHealthManager {
         final List<CoordinatorPO> persistencedCoordinators = coordinatorMapper.selectAll();
         final List<CoordinatorPO> cachedCoordinators = coordinatorService.getCoordinators();
         for (CoordinatorPO persistencedCoordinator : persistencedCoordinators) {
-            final boolean active = coordinatorService.isActive(persistencedCoordinator);
+            final boolean active = coordinatorService.checkIsActive(persistencedCoordinator);
             if (active) {
                 if (!persistencedCoordinator.isActive()) {
                     coordinatorMapper.active(persistencedCoordinator);
                 }
-                if (!cachedCoordinators.contains(persistencedCoordinator)) {
+                if (cachedCoordinators.contains(persistencedCoordinator)) {
+                    for (CoordinatorPO cachedCoordinator : cachedCoordinators) {
+                        if (Objects.equals(cachedCoordinator, persistencedCoordinator)) {
+                            cachedCoordinator.setActive(active);
+                        }
+                    }
+                } else {
                     cachedCoordinators.add(persistencedCoordinator);
                 }
             } else {
