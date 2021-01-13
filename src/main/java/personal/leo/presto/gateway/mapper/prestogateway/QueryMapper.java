@@ -21,4 +21,9 @@ public interface QueryMapper {
 
     @Delete("delete from query where create_time < DATE_ADD(NOW(), INTERVAL -2 DAY)")
     int cleanQuery();
+
+    @Update(" update query set elapsed_time =#{elapsed_time},`user`=#{user},"
+            + "`status`=#{status},error_type=#{error_type},`sql`=#{sql},"
+            + "resource_group =#{resource_group},source =#{source} where query_id=#{query_id}")
+    int saveQueryInfo(QueryPO query);
 }

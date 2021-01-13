@@ -19,6 +19,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import personal.leo.presto.gateway.mapper.prestogateway.po.QueryPO;
 import personal.leo.presto.gateway.service.CoordinatorService;
 import personal.leo.presto.gateway.service.QueryService;
 
@@ -68,6 +69,7 @@ public class DispatchController {
 
                 final String queryId = JSON.parseObject(respBody).getString("id");
                 queryService.saveQueryId(queryId, coordinatorUrl);
+                queryService.addQuery(QueryPO.builder().query_id(queryId).coordinator_url(coordinatorUrl).build());
 
                 IOUtils.write(respBody, cliResp.getOutputStream(), StandardCharsets.UTF_8);
             }

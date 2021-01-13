@@ -1,6 +1,7 @@
 package personal.leo.presto.gateway;
 
 import com.alibaba.fastjson.JSON;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import personal.leo.presto.gateway.utils.Duration;
 
 public class CommonTest {
     @Test
@@ -44,5 +46,12 @@ public class CommonTest {
         }
         watch.stop();
         System.out.println(watch);
+    }
+
+    @Test
+    public void testDuration() throws Exception {
+        String time = "12.3ms";
+        final Duration duration = Duration.valueOf(time);
+        System.out.println((int)duration.convertTo(TimeUnit.MILLISECONDS).getValue());
     }
 }
