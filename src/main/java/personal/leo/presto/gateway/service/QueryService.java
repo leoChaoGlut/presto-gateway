@@ -18,12 +18,15 @@ import personal.leo.presto.gateway.constants.Keys;
 import personal.leo.presto.gateway.mapper.prestogateway.QueryMapper;
 import personal.leo.presto.gateway.mapper.prestogateway.po.QueryPO;
 
+import java.text.SimpleDateFormat;
 import java.util.Map;
 
 @Slf4j
 @Service
 @CacheConfig(cacheNames = CacheNames.QUERY_ID_CACHE, cacheResolver = CacheResolverNames._10minCacheResolver)
 public class QueryService {
+
+    private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     QueryMapper queryMapper;
@@ -89,7 +92,7 @@ public class QueryService {
                     final Map<String, String> headers = (Map<String, String>) json.get(Keys.headers);
 
                     msgObject
-                            .fluentPut(Keys.createTime, queryPO.getCreate_time())
+                            .fluentPut(Keys.createTime, sdf.format(queryPO.getCreate_time()))
                             .fluentPut(Keys.coordinator, queryPO.getCoordinator_url())
                             .fluentPut(Keys.sql, json.get(Keys.sql))
                             .fluentPut(xPrestoUser, headers.get(xPrestoUser))
@@ -103,7 +106,6 @@ public class QueryService {
 
                 }
                 kafkaProducer.send(new ProducerRecord<>("presto-gateway", JSON.toJSONString(msgObject)));
-                //TODO 发送失败时告警?
             }
         }
     }
