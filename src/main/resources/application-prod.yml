@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    presto-gateway:
+      jdbc-url: jdbc:mysql://datamaster01:3306/presto_gateway
+      username: root
+      password: 1111
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+#logging:
+#  level:
+#    personal.leo.presto.gateway.mapper.prestogateway: DEBUG
+server:
+  port: 9200
+
+
+kafka:
+  bootstrap:
+    servers: mq1:9200,mq2:9200,mq3:9200

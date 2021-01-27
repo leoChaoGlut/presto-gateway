@@ -10,10 +10,14 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class CommonTest {
@@ -44,5 +48,19 @@ public class CommonTest {
         }
         watch.stop();
         System.out.println(watch);
+    }
+
+    @Test
+    public void test2() {
+        final Properties kafkaProducerProps = new Properties();
+        kafkaProducerProps.put("bootstrap.servers", "mq1:9200,mq2:9200,mq3:9200");
+        kafkaProducerProps.put("acks", "all");
+        kafkaProducerProps.put("key.serializer", StringSerializer.class.getName());
+        kafkaProducerProps.put("value.serializer", StringSerializer.class.getName());
+
+        final KafkaProducer<Object, Object> kafkaProducer = new KafkaProducer<>(kafkaProducerProps);
+        kafkaProducer.send(new ProducerRecord<>("test", "abc"));
+        kafkaProducer.flush();
+        kafkaProducer.close();
     }
 }
