@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +92,7 @@ public class QueryService {
                     final Map<String, String> headers = (Map<String, String>) json.get(Keys.headers);
 
                     msgObject
-                            .fluentPut(Keys.createTime, DateFormatUtils.format(queryPO.getCreate_time(), DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.getPattern()))
+                            .fluentPut(Keys.createTime, queryPO.getCreate_time())
                             .fluentPut(Keys.sql, json.get(Keys.sql))
                             .fluentPut(xPrestoUser, headers.get(xPrestoUser))
                             .fluentPut(xPrestoSource, headers.get(xPrestoSource))

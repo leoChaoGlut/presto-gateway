@@ -127,17 +127,16 @@ public class CoordinatorService {
             throw new RuntimeException("No active coordinator");
         }
 
-        final int index = this.index.get();
-        final int size = coordinators.size();
+        synchronized (index) {
+            if (index.get() >= coordinators.size()) {
+                index.set(0);
+            }
 
-        if (index >= size) {
-            this.index.compareAndSet(index, 0);
+            final CoordinatorPO coordinator = coordinators.get(index.get());
+            index.incrementAndGet();
+
+            return "http://" + coordinator.getHost() + ":" + coordinator.getPort();
         }
-
-        final CoordinatorPO coordinator = coordinators.get(index);
-        this.index.incrementAndGet();
-
-        return "http://" + coordinator.getHost() + ":" + coordinator.getPort();
     }
 
     public void removeCoordinator(String host, int port) {
