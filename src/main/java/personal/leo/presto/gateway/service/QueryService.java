@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,11 +87,13 @@ public class QueryService {
                     msgObject.put(error, respJsonObject.getJSONObject(error));
                 }
 
-                final String queryJson = queryMapper.selectJson(queryId);
-                if (StringUtils.isNotBlank(queryJson)) {
-                    final Map<String, Object> json = JSON.parseObject(queryJson, Map.class);
+                final QueryPO queryPO = queryMapper.selectById(queryId);
+                if (queryPO != null && StringUtils.isNotBlank(queryPO.getJson())) {
+                    final Map<String, Object> json = JSON.parseObject(queryPO.getJson(), Map.class);
                     final Map<String, String> headers = (Map<String, String>) json.get(Keys.headers);
+
                     msgObject
+                            .fluentPut(Keys.createTime, DateFormatUtils.format(queryPO.getCreate_time(), DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.getPattern()))
                             .fluentPut(Keys.sql, json.get(Keys.sql))
                             .fluentPut(xPrestoUser, headers.get(xPrestoUser))
                             .fluentPut(xPrestoSource, headers.get(xPrestoSource))
@@ -100,6 +103,7 @@ public class QueryService {
                     msgObject.put(Keys.headers, headers);
                 }
                 kafkaProducer.send(new ProducerRecord<>("presto-gateway", JSON.toJSONString(msgObject)));
+//TODO 发送失败时告警?
             }
         }
     }

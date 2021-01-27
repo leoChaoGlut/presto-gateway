@@ -15,11 +15,12 @@ public interface QueryMapper {
             "where query_id = #{query_id}")
     String selectCoordinatorUrl(@Param("query_id") String query_id);
 
-    @Select("select json " +
+    @Select("select * " +
             "from query " +
             "where query_id = #{query_id}")
-    String selectJson(@Param("query_id") String query_id);
+    QueryPO selectById(@Param("query_id") String query_id);
 
-    @Delete("delete from query where create_time < DATE_ADD(NOW(), INTERVAL -10 DAY)")
+    @Delete("delete from query " +
+            "where create_time < DATE_ADD(NOW(), INTERVAL -10 DAY)")
     int cleanQuery();
 }

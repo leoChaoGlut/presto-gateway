@@ -25,7 +25,7 @@ public class PrestoGatewayMybatisConfig {
     @Bean
     public SqlSessionFactory prestoGatewaySqlSessionFactory(DataSource prestoGatewayDatasource) throws Exception {
         final org.apache.ibatis.session.Configuration config = new org.apache.ibatis.session.Configuration();
-        config.setMapUnderscoreToCamelCase(true);
+//        config.setMapUnderscoreToCamelCase(true);
 
         final SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
         factoryBean.setDataSource(prestoGatewayDatasource);
