@@ -13,6 +13,7 @@ spring:
 server:
   port: 9200
 
+sdfTimeZoneId: GMT-6
 
 kafka:
   bootstrap:

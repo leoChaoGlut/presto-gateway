@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,8 +19,10 @@ import personal.leo.presto.gateway.constants.Keys;
 import personal.leo.presto.gateway.mapper.prestogateway.QueryMapper;
 import personal.leo.presto.gateway.mapper.prestogateway.po.QueryPO;
 
+import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
 import java.util.Map;
+import java.util.TimeZone;
 
 @Slf4j
 @Service
@@ -27,6 +30,15 @@ import java.util.Map;
 public class QueryService {
 
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @Value("${sdfTimeZoneId}")
+    String sdfTimeZoneId;
+
+    @PostConstruct
+    private void postConstruct() {
+        //TODO 因时区不一致导致kafka里的时间不是期望的时间.这里需要自行修改...
+        sdf.setTimeZone(TimeZone.getTimeZone(sdfTimeZoneId));
+    }
 
     @Autowired
     QueryMapper queryMapper;

@@ -2,6 +2,7 @@ package personal.leo.presto.gateway;
 
 import com.alibaba.fastjson.JSON;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -16,8 +17,12 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Properties;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class CommonTest {
@@ -62,5 +67,26 @@ public class CommonTest {
         kafkaProducer.send(new ProducerRecord<>("test", "abc"));
         kafkaProducer.flush();
         kafkaProducer.close();
+    }
+
+    @Test
+    public void test3() throws ParseException {
+        final TimeZone utc = TimeZone.getTimeZone("UTC");
+        System.out.println(utc);
+        String d1 = "2021-01-27 17:51:57";
+        String d2 = "2021-01-27 23:51:57";
+        final String format = "yyyy-MM-dd HH:mm:ss";
+        final Date dd1 = DateUtils.parseDate(d1, format);
+        System.out.println(dd1);
+//        final Date dd2 = DateUtils.parseDate(d2, format);
+        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        System.out.println(sdf.format(dd1));
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT+9"));
+        System.out.println(sdf.format(dd1));
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT-8"));
+        System.out.println(sdf.format(dd1));
+        sdf.setTimeZone(TimeZone.getTimeZone("CST"));
+        System.out.println(sdf.format(dd1));
     }
 }
