@@ -42,14 +42,12 @@ public class QueryService {
 
     @Cacheable
     public String fetchCoordinatorUrl(String queryId) {
-        final String coordinatorUrl = queryMapper.selectCoordinatorUrl(queryId);
-        return coordinatorUrl;
+        return queryMapper.selectCoordinatorUrl(queryId);
     }
 
     @Async
-    public void sendMetrics(String respBody) {
+    public void sendMetrics(String queryId, String respBody) {
         final String stats = "stats";
-        final String id = "id";
         final String state = "state";
         final String totalSplits = "totalSplits";
         final String cpuTimeMillis = "cpuTimeMillis";
@@ -69,9 +67,8 @@ public class QueryService {
         if (statsObject != null) {
             final String stateValue = statsObject.getString(state);
             if (StringUtils.equalsAny(stateValue, FAILED, "FINISHED")) {
-                final String queryId = respJsonObject.getString(id);
                 final JSONObject msgObject = new JSONObject()
-                        .fluentPut(id, queryId)
+                        .fluentPut("queryId", queryId)
                         .fluentPut(state, stateValue)
                         .fluentPut(totalSplits, statsObject.getLongValue(totalSplits))
                         .fluentPut(cpuTimeMillis, statsObject.getLongValue(cpuTimeMillis))
@@ -93,16 +90,20 @@ public class QueryService {
 
                     msgObject
                             .fluentPut(Keys.createTime, queryPO.getCreate_time())
+                            .fluentPut(Keys.coordinator, queryPO.getCoordinator_url())
                             .fluentPut(Keys.sql, json.get(Keys.sql))
                             .fluentPut(xPrestoUser, headers.get(xPrestoUser))
                             .fluentPut(xPrestoSource, headers.get(xPrestoSource))
                     ;
+
                     headers.remove(xPrestoUser);
                     headers.remove(xPrestoSource);
+
                     msgObject.put(Keys.headers, headers);
+
                 }
                 kafkaProducer.send(new ProducerRecord<>("presto-gateway", JSON.toJSONString(msgObject)));
-//TODO 发送失败时告警?
+                //TODO 发送失败时告警?
             }
         }
     }

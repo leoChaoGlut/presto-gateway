@@ -21,7 +21,7 @@ public class CacheConfig {
         final Caffeine<Object, Object> caffeine = Caffeine.newBuilder()
                 .maximumSize(5_0000L)
                 .softValues()
-                .expireAfterWrite(10L, TimeUnit.MINUTES);
+                .expireAfterWrite(3L, TimeUnit.MINUTES);
         _10minCacheManager.setCaffeine(caffeine);
 
         return new CaffeineCacheResolver(_10minCacheManager);

@@ -5,4 +5,5 @@ public interface Keys {
     String headers = "headers";
     String id = "id";
     String createTime = "createTime";
+    String coordinator = "coordinator";
 }

@@ -113,7 +113,7 @@ public class DispatchController {
                 ) {
                     cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
                     final String respBody = IOUtils.toString(contentStream, StandardCharsets.UTF_8);
-                    queryService.sendMetrics(respBody);
+                    queryService.sendMetrics(queryId, respBody);
                     IOUtils.write(respBody, cliResp.getOutputStream(), StandardCharsets.UTF_8);
                 }
             }
