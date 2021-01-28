@@ -71,7 +71,7 @@ public class DispatchController {
                 put(Keys.sql, reqBody);
             }};
 
-            proxyPost.setEntity(new StringEntity(reqBody, ContentType.TEXT_PLAIN));
+            proxyPost.setEntity(new StringEntity(reqBody, StandardCharsets.UTF_8));
 
             try (
                     final CloseableHttpResponse proxyResp = proxyHttpClient.execute(proxyPost);
