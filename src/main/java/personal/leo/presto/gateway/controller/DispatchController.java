@@ -15,6 +15,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -42,6 +43,8 @@ public class DispatchController {
     CoordinatorService coordinatorService;
     @Autowired
     QueryService queryService;
+    @Value("${kafka.enabled}")
+    boolean kafkaEnabled;
 
     @Retryable(backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
     @PostMapping("/*/**")
@@ -113,7 +116,9 @@ public class DispatchController {
                 ) {
                     cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
                     final String respBody = IOUtils.toString(contentStream, StandardCharsets.UTF_8);
-                    queryService.sendMetrics(queryId, respBody);
+                    if (kafkaEnabled) {
+                        queryService.sendMetrics(queryId, respBody);
+                    }
                     IOUtils.write(respBody, cliResp.getOutputStream(), StandardCharsets.UTF_8);
                 }
             }

@@ -16,5 +16,6 @@ server:
 sdfTimeZoneId: GMT-6
 
 kafka:
+  enabled: true
   bootstrap:
     servers: mq1:9200,mq2:9200,mq3:9200
