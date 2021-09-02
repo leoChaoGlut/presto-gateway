@@ -7,12 +7,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import personal.leo.presto.gateway.config.props.KafkaProps;
+import personal.leo.presto.gateway.config.props.PrestoGatewayProps;
 import personal.leo.presto.gateway.constants.CacheNames;
 import personal.leo.presto.gateway.constants.CacheResolverNames;
 import personal.leo.presto.gateway.constants.Keys;
@@ -31,18 +32,20 @@ public class QueryService {
 
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    @Value("${sdfTimeZoneId}")
-    String sdfTimeZoneId;
+    @Autowired
+    PrestoGatewayProps prestoGatewayProps;
+    @Autowired
+    KafkaProps kafkaProps;
 
     @PostConstruct
     private void postConstruct() {
         //TODO 因时区不一致导致kafka里的时间不是期望的时间.这里需要自行修改...
-        sdf.setTimeZone(TimeZone.getTimeZone(sdfTimeZoneId));
+        sdf.setTimeZone(TimeZone.getTimeZone(prestoGatewayProps.getSdfTimeZoneId()));
     }
 
     @Autowired
     QueryMapper queryMapper;
-    @Autowired
+    @Autowired(required = false)
     KafkaProducer<String, String> kafkaProducer;
 
     @CachePut(key = "#queryId")
@@ -117,7 +120,7 @@ public class QueryService {
                     msgObject.put(Keys.headers, headers);
 
                 }
-                kafkaProducer.send(new ProducerRecord<>("presto-gateway", JSON.toJSONString(msgObject)));
+                kafkaProducer.send(new ProducerRecord<>(kafkaProps.getTopic(), JSON.toJSONString(msgObject)));
             }
         }
     }

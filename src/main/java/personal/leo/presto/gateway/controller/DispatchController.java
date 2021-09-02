@@ -15,7 +15,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -23,6 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import personal.leo.presto.gateway.config.props.KafkaProps;
 import personal.leo.presto.gateway.constants.Keys;
 import personal.leo.presto.gateway.service.CoordinatorService;
 import personal.leo.presto.gateway.service.QueryService;
@@ -43,8 +43,8 @@ public class DispatchController {
     CoordinatorService coordinatorService;
     @Autowired
     QueryService queryService;
-    @Value("${kafka.enabled}")
-    boolean kafkaEnabled;
+    @Autowired
+    KafkaProps kafkaProps;
 
     @Retryable(backoff = @Backoff(3000L), recover = "writeExceptionToCliResp")
     @PostMapping("/*/**")
@@ -116,7 +116,7 @@ public class DispatchController {
                 ) {
                     cliResp.setContentType(ContentType.APPLICATION_JSON.getMimeType());
                     final String respBody = IOUtils.toString(contentStream, StandardCharsets.UTF_8);
-                    if (kafkaEnabled) {
+                    if (kafkaProps.isEnabled()) {
                         queryService.sendMetrics(queryId, respBody);
                     }
                     IOUtils.write(respBody, cliResp.getOutputStream(), StandardCharsets.UTF_8);

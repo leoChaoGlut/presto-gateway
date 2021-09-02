@@ -1,4 +1,4 @@
-create table presto_gateway.coordinator
+create table dmp_app.pg_coordinator
 (
     host   varchar(255) null,
     port   int          null,
